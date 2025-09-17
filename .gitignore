@@ -1,0 +1,4 @@
+# .gitignore
+.env
+trading_bot.log
+__pycache__/

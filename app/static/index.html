@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTrader Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar styling */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <header class="bg-white shadow sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">CryptoTrader Pro</h1>
+            <p class="text-sm md:text-base text-gray-600">Simple Algorithmic Trading Platform</p>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6">
+        <!-- Alert Area -->
+        <div id="alertArea" class="hidden mb-6 p-4 rounded-lg"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Order Panel -->
+            <div class="bg-white shadow rounded-lg p-6 lg:col-span-1">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Place Order</h2>
+                <form id="orderForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Symbol</label>
+                        <input type="text" id="symbol" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="e.g., BTCUSDT">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Side</label>
+                        <select id="side" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                            <option value="BUY">BUY</option>
+                            <option value="SELL">SELL</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Order Type</label>
+                        <select id="orderType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                            <option value="MARKET">Market</option>
+                            <option value="LIMIT">Limit</option>
+                            <option value="STOP_LIMIT">Stop-Limit</option>
+                        </select>
+                    </div>
+                    <div id="priceField" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Price</label>
+                        <input type="number" id="price" step="0.0001" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="e.g., 50000">
+                    </div>
+                    <div id="stopPriceField" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Stop Price</label>
+                        <input type="number" id="stopPrice" step="0.0001" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="e.g., 49000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantity or Risk %</label>
+                        <input type="number" id="quantity" step="0.001" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" placeholder="e.g., 0.001 or 2%">
+                        <p class="text-xs text-gray-500 mt-1">Enter quantity or risk percentage (e.g., 2 for 2% risk)</p>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm">
+                        Place Order
+                    </button>
+                </form>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Price Chart -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">Price Chart</h2>
+                        <div class="flex space-x-2">
+                            <select id="chartSymbol" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                <option value="BTCUSDT">BTCUSDT</option>
+                                <option value="ETHUSDT">ETHUSDT</option>
+                                <option value="BNBUSDT">BNBUSDT</option>
+                                <option value="ADAUSDT">ADAUSDT</option>
+                                <option value="XRPUSDT">XRPUSDT</option>
+                                <option value="SOLUSDT">SOLUSDT</option>
+                            </select>
+                            <select id="chartInterval" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                <option value="1m">1 Minute</option>
+                                <option value="5m">5 Minutes</option>
+                                <option value="15m">15 Minutes</option>
+                                <option value="1h">1 Hour</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="priceChart" class="w-full h-64"></canvas>
+                </div>
+
+                <!-- Account Info -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">Account Overview</h2>
+                        <button onclick="loadAccountInfo()" class="bg-gray-200 text-gray-800 py-1 px-3 rounded-md hover:bg-gray-300 text-sm">Refresh</button>
+                    </div>
+                    <div id="accountInfo" class="space-y-2">
+                        <p class="text-gray-600 flex items-center">
+                            <svg class="animate-spin h-5 w-5 mr-2 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="accountSpinner">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading account information...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Open Positions -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Open Positions</h2>
+                    <div id="positionsInfo" class="custom-scroll max-h-64 overflow-y-auto">
+                        <p class="text-gray-600 flex items-center">
+                            <svg class="animate-spin h-5 w-5 mr-2 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="positionsSpinner">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading positions...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Open Orders -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Open Orders</h2>
+                    <div id="ordersInfo" class="custom-scroll max-h-64 overflow-y-auto">
+                        <p class="text-gray-600 flex items-center">
+                            <svg class="animate-spin h-5 w-5 mr-2 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="ordersSpinner">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading orders...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
