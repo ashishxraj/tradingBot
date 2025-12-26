@@ -1,4 +1,4 @@
-# PyFuturesTrader - Advanced Algorithmic Trading Bot
+# PyFuturesTrader - Trading Bot
 
 ![PyFuturesTrader](https://img.shields.io/badge/PyFuturesTrader-blue)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-green)
